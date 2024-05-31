@@ -11,6 +11,8 @@ Run `solve.py` to have words suggested to you for playing a puzzle somewhere els
 
 ## Notes
 
+The word list included contains around 5000 words, and contains some that are not used by NY Times. Feel free to add or remove words from the list as you want/need to. 
+
 ### Solving Algorithm Choices
 
 - Words are chosen that contain letters that are each in as many words as possible. It does not prioritize different letters to get the most overall word coverage. 
