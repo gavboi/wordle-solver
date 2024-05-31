@@ -35,6 +35,32 @@ def convert(arg: Union[str, int]) -> Union[str, int]:
             raise ValueError(f'Arg {arg} is not length 1')
         return ord(arg.lower()) - ord('a')
     elif type(arg) is int:
-        if int >= 26 or int < 0:
+        if arg >= 26 or arg < 0:
             raise ValueError(f'Arg {arg} must be within the length of alphabet')
         return chr(arg + ord('a'))
+
+def adjust_word_list(words: List[str], guess: str, feedback: str, debug: bool = False) -> None:
+    start_length = len(words)
+    for i in range(5):
+        to_remove = []
+        for word in words:
+            exclude = False
+            if feedback[i] == 'x':
+                if guess[i] in word:
+                    if debug: print(f'Excluding {word}: has {guess[i]}')
+                    to_remove.append(word)
+            elif feedback[i] == 'c':
+                if guess[i] not in word:
+                    if debug: print(f'Excluding {word}: missing {guess[i]}')
+                    to_remove.append(word)
+                elif guess[i] == word[i]:
+                    if debug: print(f'Excluding {word}: {guess[i]} is index {i}')
+                    to_remove.append(word)
+            elif feedback[i] == 'o':
+                if guess[i] != word[i]:
+                    if debug: print(f'Excluding {word}: index {i} not {guess[i]}')
+                    to_remove.append(word)
+        words = [word for word in words if word not in to_remove]
+    percent_removed = 100 * (start_length - len(words)) / start_length
+    if debug: print(f'{start_length} -> {len(words)}  |  {round(percent_removed,2)}% removed')
+    return words
