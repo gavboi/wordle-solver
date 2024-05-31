@@ -1,8 +1,31 @@
-from common import get_all_words, validate_guess
+from common import get_all_words
 
 import random
 import sys
 
+
+def validate_guess(guess: str, target_word: str) -> Tuple[List[str]]:
+    correct = []
+    close = []
+    wrong = []
+    count = {}
+    for letter in target_word:
+        count[letter] = 1 if letter not in count else count[letter]+1
+    for index, letter in enumerate(guess):
+        if letter in target_word:
+            if guess[index] == target_word[index]:
+                correct.append(letter)
+                if count[letter] == 0:
+                    close.remove(letter)
+                else:
+                    count[letter] -= 1
+            else:
+                if count[letter] > 0:
+                    close.append(letter)
+                    count[letter] -= 1
+        else:
+            wrong.append(letter)
+    return correct, close, wrong
 
 def main():
     # parse options
