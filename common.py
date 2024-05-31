@@ -1,4 +1,4 @@
-from typing import List, Tuple, Union
+from typing import List, Union
 
 def get_all_words() -> List[str]:
     with open('five_letter_words.txt', 'r') as file:
