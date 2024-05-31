@@ -31,7 +31,7 @@ def validate_guess(guess: str, target_word: str) -> Tuple[List[str]]:
 def main():
     # parse options
     parser = ap(description='Try to guess the word the script chose.')
-    parser.add_argument('-g', type=int, default=6, help='maximum guesses allowed')
+    parser.add_argument('-g', '--guesses', type=int, default=6, help='maximum guesses allowed')
     args = parser.parse_args()
     # read words
     all_words = get_all_words()

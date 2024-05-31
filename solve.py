@@ -57,7 +57,7 @@ def adjust_word_list(words: List[str], guess: str, feedback: str, debug: bool = 
 def main():
     # parse options
     parser = ap(description='Suggests guesses for Wordle.')
-    parser.add_argument('-g', type=int, default=6, help='maximum guesses allowed')
+    parser.add_argument('-g', '--guesses', type=int, default=6, help='maximum guesses allowed')
     #parser.add_argument('-m', action='store_true', default=False, help='set game type to mastermind')
     args = parser.parse_args()
     # read words and other setup
