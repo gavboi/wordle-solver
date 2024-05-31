@@ -1,7 +1,8 @@
 from common import get_all_words
 
+from argparse import ArgumentParser as ap
 import random
-import sys
+from typing import Tuple, List
 
 
 def validate_guess(guess: str, target_word: str) -> Tuple[List[str]]:
@@ -29,8 +30,9 @@ def validate_guess(guess: str, target_word: str) -> Tuple[List[str]]:
 
 def main():
     # parse options
-    guess_count = int(sys.argv[1]) if len(sys.argv) > 1 else 6
-
+    parser = ap(description='Try to guess the word the script chose.')
+    parser.add_argument('-g', type=int, default=6, help='maximum guesses allowed')
+    args = parser.parse_args()
     # read words
     all_words = get_all_words()
 
@@ -38,7 +40,7 @@ def main():
     target_word = random.choice(all_words)
 
     # play
-    for g in range(guess_count):
+    for g in range(args.g):
         guess = ''
         while len(guess) != 5:
             guess = input(f'Guess {g+1}: ')

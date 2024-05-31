@@ -1,6 +1,6 @@
 from common import get_all_words, convert
 
-import sys
+from argparse import ArgumentParser as ap
 from typing import List
 
 def count_letters(words: List[str]) -> List[int]:
@@ -56,12 +56,15 @@ def adjust_word_list(words: List[str], guess: str, feedback: str, debug: bool = 
 
 def main():
     # parse options
-    guess_count = int(sys.argv[1]) if len(sys.argv) > 1 else 6
+    parser = ap(description='Suggests guesses for Wordle.')
+    parser.add_argument('-g', type=int, default=6, help='maximum guesses allowed')
+    #parser.add_argument('-m', action='store_true', default=False, help='set game type to mastermind')
+    args = parser.parse_args()
     # read words and other setup
     words = get_all_words()
     word_count = len(words)
     # pick guess
-    for g in range(guess_count):
+    for g in range(args.g):
         guess = pick_word_simple(words)
         print(guess)
         feedback = input('Feedback: ')
