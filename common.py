@@ -6,6 +6,16 @@ def get_all_words() -> List[str]:
     all_words = [word.strip() for word in all_words]
     return all_words
 
+def get_all_mastermind(options: int = 6, length: int = 4) -> List[str]:
+    all_codes = []
+    for n in range(options ** length):
+        code = ''
+        for i in range(length - 1, -1, -1):
+            code = code + convert(n // (options ** i))
+            n = n % (options ** i)
+        all_codes.append(code)
+    return all_codes
+
 def validate_guess(guess: str, target_word: str) -> Tuple[List[str]]:
     correct = []
     close = []
