@@ -1,4 +1,4 @@
-from common import get_all_words, convert
+from common import get_all_words, convert, get_all_mastermind
 
 from argparse import ArgumentParser as ap
 from typing import List
@@ -27,9 +27,15 @@ def pick_word_simple(words: List[str]) -> str:
         word_coverage.append(coverage)
     return words[word_coverage.index(max(word_coverage))]
 
-def adjust_word_list(words: List[str], guess: str, feedback: str, debug: bool = False) -> None:
+def adjust_word_list(
+        words: List[str], 
+        guess: str, 
+        feedback: str, 
+        ans_len: str,
+        debug: bool = False
+) -> None:
     start_length = len(words)
-    for i in range(5):
+    for i in range(ans_len):
         to_remove = []
         for word in words:
             exclude = False
@@ -58,20 +64,34 @@ def main():
     # parse options
     parser = ap(description='Suggests guesses for Wordle.')
     parser.add_argument('-g', '--guesses', type=int, default=6, help='maximum guesses allowed')
-    #parser.add_argument('-m', action='store_true', default=False, help='set game type to mastermind')
+    parser.add_argument('-m', '--mastermind', nargs='?', type=int, const=6, default=None, help='set game type to mastermind, optionally provide amount of options per index')
+    parser.add_argument('-l', '--length', type=int, default=None, help='length of correct answer')
     args = parser.parse_args()
-    # read words and other setup
-    words = get_all_words()
+    # use default wordle = 5, mastermind = 4 if no length provided
+    if args.length == None:
+        ans_len = 5 if args.mastermind == None else 4
+    else:
+        ans_len = args.length
+    # set word list to mastermind or wordle ones accordingly
+    if args.mastermind != None:
+        words = get_all_mastermind(args.mastermind, ans_len)
+    else:
+        if ans_len == 5:
+            words = get_all_words()
+        else:
+            raise NotImplementedError(f'No word list found for length {ans_len}')
     word_count = len(words)
     # pick guess
-    for g in range(args.g):
+    for g in range(args.guesses):
         guess = pick_word_simple(words)
         print(guess)
-        feedback = input('Feedback: ')
-        if feedback == 'ooooo':
+        feedback = ''
+        while len(feedback) != ans_len:
+            feedback = input('Feedback: ')
+        if feedback == 'o'*ans_len:
             print('Solved!')
             return
-        words = adjust_word_list(words, guess, feedback, debug=True)
+        words = adjust_word_list(words, guess, feedback, ans_len, debug=True)
     print('Failed solve!')
 
 if __name__ == '__main__':
