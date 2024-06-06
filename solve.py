@@ -32,28 +32,45 @@ def adjust_word_list(
         guess: str, 
         feedback: str, 
         ans_len: str,
-        debug: bool = False
+        positioned: bool,
+        debug: bool,
 ) -> None:
     start_length = len(words)
-    for i in range(ans_len):
+    if positioned:
+        for i in range(ans_len):
+            to_remove = []
+            for word in words:
+                if feedback[i] == 'x':
+                    if guess[i] in word:
+                        if debug: print(f'Excluding {word}: has {guess[i]}')
+                        to_remove.append(word)
+                elif feedback[i] == 'c':
+                    if guess[i] not in word:
+                        if debug: print(f'Excluding {word}: missing {guess[i]}')
+                        to_remove.append(word)
+                    elif guess[i] == word[i]:
+                        if debug: print(f'Excluding {word}: {guess[i]} is index {i}')
+                        to_remove.append(word)
+                elif feedback[i] == 'o':
+                    if guess[i] != word[i]:
+                        if debug: print(f'Excluding {word}: index {i} not {guess[i]}')
+                        to_remove.append(word)
+            words = [word for word in words if word not in to_remove]
+    else:
         to_remove = []
         for word in words:
-            exclude = False
-            if feedback[i] == 'x':
-                if guess[i] in word:
-                    if debug: print(f'Excluding {word}: has {guess[i]}')
-                    to_remove.append(word)
-            elif feedback[i] == 'c':
-                if guess[i] not in word:
-                    if debug: print(f'Excluding {word}: missing {guess[i]}')
-                    to_remove.append(word)
-                elif guess[i] == word[i]:
-                    if debug: print(f'Excluding {word}: {guess[i]} is index {i}')
-                    to_remove.append(word)
-            elif feedback[i] == 'o':
-                if guess[i] != word[i]:
-                    if debug: print(f'Excluding {word}: index {i} not {guess[i]}')
-                    to_remove.append(word)
+            letters = list(word)
+            for i in range(ans_len):
+                if guess[i] == word[i]:
+                    letters[i] = '!'
+                elif guess[i] in letters:
+                    letters[letters.index(guess[i])] = '?'
+            if letters.count('!') != feedback.count('o'):
+                if debug: print(f'Excluding {word}: exact count is {letters.count("!")} not {feedback.count('o')}')
+                to_remove.append(word)
+            elif letters.count('?') != feedback.count('c'):
+                if debug: print(f'Excluding {word}: exact count is {letters.count("?")} not {feedback.count('c')}')
+                to_remove.append(word)
         words = [word for word in words if word not in to_remove]
     percent_removed = 100 * (start_length - len(words)) / start_length
     if debug: print(f'{start_length} -> {len(words)}  |  {round(percent_removed,2)}% removed')
@@ -66,6 +83,7 @@ def main():
     parser.add_argument('-m', '--mastermind', nargs='?', type=int, const=8, default=None, metavar='OPTIONS', help='set game type to mastermind, optionally provide amount of options per index (default 8)')
     parser.add_argument('-g', '--guesses', type=int, default=None, metavar='COUNT', help='maximum guesses allowed (default 6 for wordle, 10 for mastermind)')
     parser.add_argument('-l', '--length', type=int, default=None, help='length of correct answer (default 5 for wordle, 4 for mastermind)')
+    parser.add_argument('-p', '--positioned', default=None, choices=['true', 'false'], help='whether feedback position matters (default True for wordle, False for mastermind)')
     parser.add_argument('-d', '--debug', action='store_true', default=False, help='enable debug prints (default False)')
     args = parser.parse_args()
     # use default guesses wordle = 6, mastermind = 10 if no count provided
@@ -78,6 +96,11 @@ def main():
         ans_len = 5 if args.mastermind == None else 4
     else:
         ans_len = args.length
+    # use default lengths wordle = 5, mastermind = 4 if no length provided
+    if args.positioned == None:
+        positioned = True if args.mastermind == None else False
+    else:
+        positioned = args.positioned
     # set word list to mastermind or wordle ones accordingly
     if args.mastermind != None:
         words = get_all_mastermind(args.mastermind, ans_len)
@@ -97,7 +120,7 @@ def main():
         if feedback == 'o'*ans_len:
             print('Solved!')
             return
-        words = adjust_word_list(words, guess, feedback, ans_len, debug=args.debug)
+        words = adjust_word_list(words, guess, feedback, ans_len, positioned, args.debug)
     print('Failed solve!')
 
 if __name__ == '__main__':
