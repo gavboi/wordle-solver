@@ -81,7 +81,7 @@ def adjust_word_list(
 
 def main():
     # parse options
-    parser = ap(description='Suggests guesses for Wordle.')
+    parser = ap(description='Suggests guesses for Wordle or Mastermind.')
     parser.add_argument('-m', '--mastermind', nargs='?', type=int, const=8, default=None, metavar='OPTIONS', help='set game type to mastermind, optionally provide amount of options per index (default 8)')
     parser.add_argument('-g', '--guesses', type=int, default=None, metavar='COUNT', help='maximum guesses allowed (default 6 for wordle, 10 for mastermind)')
     parser.add_argument('-l', '--length', type=int, default=None, help='length of correct answer (default 5 for wordle, 4 for mastermind)')
