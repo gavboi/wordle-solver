@@ -102,7 +102,7 @@ def main():
     if args.positioned == None:
         positioned = True if args.mastermind == None else False
     else:
-        positioned = args.positioned
+        positioned = True if args.positioned == 'true' else False
     # set word list to mastermind or wordle ones accordingly
     if args.mastermind != None:
         words = get_all_mastermind(args.mastermind, ans_len)
