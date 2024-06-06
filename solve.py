@@ -112,14 +112,19 @@ def main():
     word_count = len(words)
     # pick guess
     for g in range(guesses):
-        guess = pick_word_simple(words)
-        print(guess)
-        feedback = ''
-        while len(feedback) != ans_len:
-            feedback = input('Feedback: ')
-        if feedback == 'o'*ans_len:
-            print('Solved!')
-            return
+        first_guess = True
+        while first_guess or feedback == 's' or feedback == 'skip': 
+            first_guess = False
+            guess = pick_word_simple(words)
+            print(f'Guess {g+1}/{guesses}: {guess}')
+            feedback = ''
+            while len(feedback) != ans_len and feedback not in ['s', 'skip']:
+                feedback = input('Feedback: ')
+            if feedback == 'o'*ans_len:
+                print('Solved!')
+                return
+            elif feedback in ['s', 'skip']:
+                words.remove(guess)
         words = adjust_word_list(words, guess, feedback, ans_len, positioned, args.debug)
     print('Failed solve!')
 
