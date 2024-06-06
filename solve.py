@@ -15,6 +15,8 @@ def count_letters(words: List[str]) -> List[int]:
     return letter_count
 
 def pick_word_simple(words: List[str]) -> str:
+    if len(words) == 0:
+        return None
     letter_count = count_letters(words)
     word_coverage = []
     for word in words:
@@ -116,6 +118,9 @@ def main():
         while first_guess or feedback == 's' or feedback == 'skip': 
             first_guess = False
             guess = pick_word_simple(words)
+            if guess == None:
+                print('Something went wrong, no more possible guesses!')
+                return
             print(f'Guess {g+1}/{guesses}: {guess}')
             feedback = ''
             while len(feedback) != ans_len and feedback not in ['s', 'skip']:
