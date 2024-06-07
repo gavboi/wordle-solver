@@ -1,57 +1,47 @@
-from common import get_all_words
+from common import get_args
 
-from argparse import ArgumentParser as ap
 import random
-from typing import Tuple, List
 
 
-def validate_guess(guess: str, target_word: str) -> Tuple[List[str]]:
-    correct = []
-    close = []
-    wrong = []
-    count = {}
-    for letter in target_word:
-        count[letter] = 1 if letter not in count else count[letter]+1
-    for index, letter in enumerate(guess):
-        if letter in target_word:
-            if guess[index] == target_word[index]:
-                correct.append(letter)
-                if count[letter] == 0:
-                    close.remove(letter)
-                else:
-                    count[letter] -= 1
-            else:
-                if count[letter] > 0:
-                    close.append(letter)
-                    count[letter] -= 1
+def validate_guess(guess: str, target_word: str, positioned: bool) -> str:
+    feedback = []
+    target_list = list(target_word)
+    for i in range(len(guess)):
+        if guess[i] == target_list[i]:
+            feedback.append('o')
+            target_list[i] = '_'
         else:
-            wrong.append(letter)
-    return correct, close, wrong
+            feedback.append('x')
+    for i in range(len(guess)):
+        if feedback[i] == 'x' and guess[i] in target_list:
+            feedback[i] = 'c'
+            target_list[target_list.index(guess[i])] = '_'
+    if positioned:
+        feedback_final = ''.join(feedback)
+    else:
+        feedback_final = ''
+        for letter in ['o', 'c', 'x']:
+            feedback_final += letter * feedback.count(letter)
+    return feedback_final
 
 def main():
-    # parse options
-    parser = ap(description='Try to guess the word the script chose.')
-    parser.add_argument('-g', '--guesses', type=int, default=6, help='maximum guesses allowed')
-    args = parser.parse_args()
-    # read words
-    all_words = get_all_words()
+    # parse args
+    args, words = get_args("Try to guess the Wordle word or Mastermind code the script comes up with.")
 
     # pick word
-    target_word = random.choice(all_words)
+    target_word = random.choice(words)
 
     # play
-    for g in range(args.g):
+    for g in range(args.guesses):
         guess = ''
-        while len(guess) != 5:
-            guess = input(f'Guess {g+1}: ')
-        correct, close, wrong = validate_guess(guess, target_word)
-        if len(correct) == 5:
-            print('Yeehaw')
+        while guess not in words:
+            guess = input(f'Guess {g+1}/{args.guesses}: ')
+        feedback = validate_guess(guess, target_word, args.positioned)
+        if feedback == 'o' * len(target_word):
+            print('You guessed the word!')
             break
-        print(f'Correct: {",".join(correct)}')
-        print(f'Close: {",".join(close)}')
-        print(f'Wrong: {",".join(wrong)}')
-        print('')
+        else:
+            print(feedback)
 
     print(f'The word was: {target_word}')
 

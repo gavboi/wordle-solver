@@ -1,6 +1,5 @@
-from common import get_all_words, convert, get_all_mastermind
+from common import convert, get_args
 
-from argparse import ArgumentParser as ap
 from typing import List
 
 def count_letters(words: List[str]) -> List[int]:
@@ -33,13 +32,12 @@ def adjust_word_list(
         words: List[str], 
         guess: str, 
         feedback: str, 
-        ans_len: str,
         positioned: bool,
         debug: bool,
 ) -> None:
     start_length = len(words)
     if positioned:
-        for i in range(ans_len):
+        for i in range(len(guess)):
             to_remove = []
             for word in words:
                 if feedback[i] == 'x':
@@ -62,7 +60,7 @@ def adjust_word_list(
         to_remove = []
         for word in words:
             letters = list(word)
-            for i in range(ans_len):
+            for i in range(len(guess)):
                 if guess[i] == word[i]:
                     letters[i] = '!'
                 elif guess[i] in letters:
@@ -81,39 +79,10 @@ def adjust_word_list(
 
 def main():
     # parse options
-    parser = ap(description='Suggests guesses for Wordle or Mastermind.')
-    parser.add_argument('-m', '--mastermind', nargs='?', type=int, const=8, default=None, metavar='OPTIONS', help='set game type to mastermind, optionally provide amount of options per index (default 8)')
-    parser.add_argument('-g', '--guesses', type=int, default=None, metavar='COUNT', help='maximum guesses allowed (default 6 for wordle, 10 for mastermind)')
-    parser.add_argument('-l', '--length', type=int, default=None, help='length of correct answer (default 5 for wordle, 4 for mastermind)')
-    parser.add_argument('-p', '--positioned', default=None, choices=['true', 'false'], help='whether feedback position matters (default True for wordle, False for mastermind)')
-    parser.add_argument('-d', '--debug', action='store_true', default=False, help='enable debug prints (default False)')
-    args = parser.parse_args()
-    # use default guesses wordle = 6, mastermind = 10 if no count provided
-    if args.guesses == None:
-        guesses = 6 if args.mastermind == None else 10
-    else:
-        guesses = args.guesses
-    # use default lengths wordle = 5, mastermind = 4 if no length provided
-    if args.length == None:
-        ans_len = 5 if args.mastermind == None else 4
-    else:
-        ans_len = args.length
-    # use default lengths wordle = 5, mastermind = 4 if no length provided
-    if args.positioned == None:
-        positioned = True if args.mastermind == None else False
-    else:
-        positioned = True if args.positioned == 'true' else False
-    # set word list to mastermind or wordle ones accordingly
-    if args.mastermind != None:
-        words = get_all_mastermind(args.mastermind, ans_len)
-    else:
-        if ans_len == 5:
-            words = get_all_words()
-        else:
-            raise NotImplementedError(f'No word list found for length {ans_len}')
-    word_count = len(words)
+    args, words = get_args("Script will try and guess a Wordle word or Mastermind code.")
+    
     # pick guess
-    for g in range(guesses):
+    for g in range(args.guesses):
         first_guess = True
         while first_guess or feedback == 's' or feedback == 'skip': 
             first_guess = False
@@ -121,16 +90,16 @@ def main():
             if guess == None:
                 print('Something went wrong, no more possible guesses!')
                 return
-            print(f'Guess {g+1}/{guesses}: {guess}')
+            print(f'Guess {g+1}/{args.guesses}: {guess}')
             feedback = ''
-            while len(feedback) != ans_len and feedback not in ['s', 'skip']:
+            while len(feedback) != args.length and feedback not in ['s', 'skip']:
                 feedback = input('Feedback: ')
-            if feedback == 'o'*ans_len:
+            if feedback == 'o' * args.length:
                 print('Solved!')
                 return
             elif feedback in ['s', 'skip']:
                 words.remove(guess)
-        words = adjust_word_list(words, guess, feedback, ans_len, positioned, args.debug)
+        words = adjust_word_list(words, guess, feedback, args.positioned, args.debug)
     print('Failed solve!')
 
 if __name__ == '__main__':
