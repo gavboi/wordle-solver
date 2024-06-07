@@ -1,6 +1,11 @@
 from typing import List, Union, Tuple
 
 import argparse
+from datetime import datetime
+
+
+LOGFILE = 'debug.log'
+
 
 def get_all_words() -> List[str]:
     with open('five_letter_words.txt', 'r') as file:
@@ -36,6 +41,7 @@ def get_args(description: str) -> Tuple[argparse.Namespace, List[str]]:
     parser.add_argument('-l', '--length', type=int, default=None, help='length of correct answer (default 5 for wordle, 4 for mastermind)')
     parser.add_argument('-p', '--positioned', default=None, choices=['true', 'false'], help='whether feedback position matters (default True for wordle, False for mastermind)')
     parser.add_argument('-d', '--debug', action='store_true', default=False, help='enable debug prints (default False)')
+    parser.add_argument('-f', '--file-debug', action='store_true', default=False, help='enable debug logging in file (default False)')
     args = parser.parse_args()
     # use default guesses wordle = 6, mastermind = 10 if no count provided
     if args.guesses == None:
@@ -58,3 +64,8 @@ def get_args(description: str) -> Tuple[argparse.Namespace, List[str]]:
             raise NotImplementedError(f'No word list found for length {args.length}')
     if args.debug: print(f'm:{args.mastermind} g:{args.guesses} l:{args.length} p:{args.positioned}')
     return args, words
+
+def get_log_header():
+    now = datetime.now().strftime("%m/%d/%Y %H:%M:%S")
+    return now + '\n'
+    

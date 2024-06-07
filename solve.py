@@ -1,4 +1,4 @@
-from common import convert, get_args
+from common import convert, get_args, LOGFILE, get_log_header
 
 from typing import List
 
@@ -34,26 +34,37 @@ def adjust_word_list(
         feedback: str, 
         positioned: bool,
         debug: bool,
+        file_debug: bool
 ) -> None:
     start_length = len(words)
+    if file_debug: 
+        fp = open(LOGFILE, 'a') 
     if positioned:
         for i in range(len(guess)):
             to_remove = []
             for word in words:
                 if feedback[i] == 'x':
                     if guess[i] in word:
-                        if debug: print(f'Excluding {word}: has {guess[i]}')
+                        debug_str = f'Excluding {word}: has {guess[i]}'
+                        if debug: print(debug_str)
+                        if file_debug: fp.write(debug_str + '\n')
                         to_remove.append(word)
                 elif feedback[i] == 'c':
                     if guess[i] not in word:
-                        if debug: print(f'Excluding {word}: missing {guess[i]}')
+                        debug_str = f'Excluding {word}: missing {guess[i]}'
+                        if debug: print(debug_str)
+                        if file_debug: fp.write(debug_str + '\n')
                         to_remove.append(word)
                     elif guess[i] == word[i]:
-                        if debug: print(f'Excluding {word}: {guess[i]} is index {i}')
+                        debug_str = f'Excluding {word}: {guess[i]} is index {i}'
+                        if debug: print(debug_str)
+                        if file_debug: fp.write(debug_str + '\n')
                         to_remove.append(word)
                 elif feedback[i] == 'o':
                     if guess[i] != word[i]:
-                        if debug: print(f'Excluding {word}: index {i} not {guess[i]}')
+                        debug_str = f'Excluding {word}: index {i} not {guess[i]}'
+                        if debug: print(debug_str)
+                        if file_debug: fp.write(debug_str + '\n')
                         to_remove.append(word)
             words = [word for word in words if word not in to_remove]
     else:
@@ -66,20 +77,33 @@ def adjust_word_list(
                 elif guess[i] in letters:
                     letters[letters.index(guess[i])] = '?'
             if letters.count('!') != feedback.count('o'):
-                if debug: print(f'Excluding {word}: exact count is {letters.count("!")} not {feedback.count('o')}')
+                debug_str = f'Excluding {word}: exact count is {letters.count("!")} not {feedback.count('o')}'
+                if debug: print(debug_str)
+                if file_debug: fp.write(debug_str + '\n')
                 to_remove.append(word)
             elif letters.count('?') != feedback.count('c'):
-                if debug: print(f'Excluding {word}: exact count is {letters.count("?")} not {feedback.count('c')}')
+                debug_str = f'Excluding {word}: exact count is {letters.count("?")} not {feedback.count('c')}'
+                if debug: print(debug_str)
+                if file_debug: fp.write(debug_str + '\n')
                 to_remove.append(word)
         words = [word for word in words if word not in to_remove]
     percent_removed = 100 * (start_length - len(words)) / start_length
-    if debug: print(f'{start_length} -> {len(words)}  |  {round(percent_removed,2)}% removed')
+    debug_str = f'{start_length} -> {len(words)}  |  {round(percent_removed,2)}% removed'
+    if debug: print(debug_str)
+    if file_debug:
+        fp.write(debug_str + '\n')
+        fp.close()
     return words
 
 
 def main():
     # parse options
     args, words = get_args("Script will try and guess a Wordle word or Mastermind code.")
+    
+    # prep logfile
+    if args.file_debug: 
+        with open(LOGFILE, 'w') as fp: 
+            fp.write(get_log_header())
     
     # pick guess
     for g in range(args.guesses):
@@ -88,19 +112,36 @@ def main():
             first_guess = False
             guess = pick_word_simple(words)
             if guess == None:
-                print('Something went wrong, no more possible guesses!')
+                print_str = 'Something went wrong, no more possible guesses!'
+                print(print_str)
+                if args.file_debug: 
+                    with open(LOGFILE, 'a') as fp: 
+                        fp.write(print_str + '\n')
                 return
-            print(f'Guess {g+1}/{args.guesses}: {guess}')
+            print_str = f'Guess {g+1}/{args.guesses}: {guess}'
+            print(print_str)
+            if args.file_debug: 
+                with open(LOGFILE, 'a') as fp: 
+                    fp.write(print_str + '\n')
             feedback = ''
             while len(feedback) != args.length and feedback not in ['s', 'skip']:
                 feedback = input('Feedback: ')
+            if args.file_debug: 
+                with open(LOGFILE, 'a') as fp: 
+                    fp.write(f'Feedback: {feedback}\n')
             if feedback == 'o' * args.length:
                 print('Solved!')
+                if args.file_debug: 
+                    with open(LOGFILE, 'a') as fp: 
+                        fp.write('Solved!\n')
                 return
             elif feedback in ['s', 'skip']:
                 words.remove(guess)
-        words = adjust_word_list(words, guess, feedback, args.positioned, args.debug)
+        words = adjust_word_list(words, guess, feedback, args.positioned, args.debug, args.file_debug)
     print('Failed solve!')
+    if args.file_debug: 
+        with open(LOGFILE, 'a') as fp: 
+            fp.write(f'Failed solve!\n')
 
 if __name__ == '__main__':
     main()
