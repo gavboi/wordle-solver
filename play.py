@@ -1,6 +1,6 @@
-from common import get_args, get_log_header, LOGFILE
-
 import random
+
+from common import get_args, get_log_header, LOGFILE
 
 
 def validate_guess(guess: str, target_word: str, positioned: bool) -> str:
@@ -23,6 +23,7 @@ def validate_guess(guess: str, target_word: str, positioned: bool) -> str:
         for letter in ['o', 'c', 'x']:
             feedback_final += letter * feedback.count(letter)
     return feedback_final
+
 
 def main():
     # parse args
@@ -62,6 +63,7 @@ def main():
     if args.file_debug: 
         with open(LOGFILE, 'a') as fp: 
             fp.write(print_str + '\n')
+
 
 if __name__ == '__main__':
     main()
