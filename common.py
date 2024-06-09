@@ -1,5 +1,6 @@
 import argparse
 from datetime import datetime
+from time import monotonic
 from typing import List, Union, Tuple
 
 
@@ -14,13 +15,19 @@ def get_all_words() -> List[str]:
 
 
 def get_all_mastermind(options: int = 6, length: int = 4) -> List[str]:
+    t = monotonic()
+    total = options ** length
     all_codes = []
-    for n in range(options ** length):
+    for n in range(total):
+        if monotonic() > t + 0.5:
+            t = monotonic()
+            print(f'Calculating possibilities: {round(100 * n / total)}%  ', end='\r')
         code = ''
         for i in range(length - 1, -1, -1):
             code = code + convert(n // (options ** i))
             n = n % (options ** i)
         all_codes.append(code)
+    print(' '*40, end='\r')
     return all_codes
 
 

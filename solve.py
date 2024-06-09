@@ -1,3 +1,4 @@
+from time import monotonic
 from typing import List
 
 from common import convert, get_args, LOGFILE, get_log_header
@@ -16,11 +17,16 @@ def count_letters(words: List[str]) -> List[int]:
 
 
 def pick_word_simple(words: List[str]) -> str:
-    if len(words) == 0:
+    total = len(words)
+    t = monotonic()
+    if total == 0:
         return ''
     letter_count = count_letters(words)
     word_coverage = []
-    for word in words:
+    for w, word in enumerate(words):
+        if monotonic() > t + 0.5:
+            t = monotonic()
+            print(f'Calculating guess: {round(100 * w / total)}%  ', end='\r')
         unique = []
         coverage = 0
         for letter in word:
@@ -28,6 +34,7 @@ def pick_word_simple(words: List[str]) -> str:
                 unique.append(letter)
                 coverage += letter_count[convert(letter)]
         word_coverage.append(coverage)
+    print(' '*40, end='\r')
     return words[word_coverage.index(max(word_coverage))]
 
 
@@ -40,13 +47,18 @@ def adjust_word_list(
         file_debug: bool
 ) -> List[str]:
     start_length = len(words)
+    t = monotonic()
     fp = None
     if file_debug: 
         fp = open(LOGFILE, 'a') 
     if positioned:
         for i in range(len(guess)):
             to_remove = []
-            for word in words:
+            for w, word in enumerate(words):
+                if monotonic() > t + 0.5:
+                    t = monotonic()
+                    numerator = i * start_length + w
+                    print(f'Taking feedback: {round(100 * numerator / start_length)}%  ', end='\r')
                 if feedback[i] == 'x':
                     if guess[i] in word:
                         debug_str = f'Excluding {word}: has {guess[i]}'
@@ -80,8 +92,12 @@ def adjust_word_list(
                         to_remove.append(word)
             words = [word for word in words if word not in to_remove]
     else:
-        to_remove = []
-        for word in words:
+        words_new = []
+        for w, word in enumerate(words):
+            exclude = False
+            if monotonic() > t + 0.5:
+                t = monotonic()
+                print(f'Taking feedback: {round(100 * w / start_length)}%  ', end='\r')
             letters = list(word)
             for i in range(len(guess)):
                 if guess[i] == word[i]:
@@ -94,15 +110,18 @@ def adjust_word_list(
                     print(debug_str)
                 if file_debug:
                     fp.write(debug_str + '\n')
-                to_remove.append(word)
+                exclude = True
             elif letters.count('?') != feedback.count('c'):
                 debug_str = f'Excluding {word}: exact count is {letters.count("?")} not {feedback.count("c")}'
                 if debug:
                     print(debug_str)
                 if file_debug:
                     fp.write(debug_str + '\n')
-                to_remove.append(word)
-        words = [word for word in words if word not in to_remove]
+                exclude = True
+            if not exclude:
+                words_new.append(word)
+        words = words_new
+    print(' '*40, end='\r')
     percent_removed = 100 * (start_length - len(words)) / start_length
     debug_str = f'{start_length} -> {len(words)}  |  {round(percent_removed,2)}% removed'
     if debug:
